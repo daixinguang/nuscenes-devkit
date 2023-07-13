@@ -1,3 +1,53 @@
+## 2023.07.13
+
+### add param load_interval for debug
+
+nuScenes评估全量数据集在3090上需要1h，如果需要快速出结果，可以设置1/X 数据集来比较变化。
+
+mmdet3d提供了 load_interval 参数 方便使用 1/x 数据集训练。
+
+但是不能使用部分数据集得到评估结果。因此，小修了 nuscenes-devkit。
+
+只要 clone 该仓库。
+
+```python
+cd setup
+pip install -v -e .
+```
+
+添加内容：`/home/zhanggl/sda/dxg/bev/3D_Corruptions_AD/nuscenes-devkit/python-sdk/nuscenes/eval/common/loaders.py:95`
+
+load_interval 就是超参数，修改参数和mmdet3d一致即可。
+```python
+    #! dxg add split dataset
+    '''
+    sample_tokens = []
+    for sample_token in sample_tokens_all:
+        scene_token = nusc.get('sample', sample_token)['scene_token']
+        scene_record = nusc.get('scene', scene_token)
+        if scene_record['name'] in splits[eval_split]:
+            sample_tokens.append(sample_token)
+    '''
+    load_interval = 1000
+    samples = []
+    for sample_token in sample_tokens_all:
+        sample = nusc.get('sample', sample_token)
+        scene_token = sample['scene_token']
+        scene_record = nusc.get('scene', scene_token)
+        if scene_record['name'] in splits[eval_split]:
+            samples.append(sample)
+    samples = list(sorted(samples, key=lambda e: e['timestamp']))
+    samples = samples[::load_interval]
+    sample_tokens = [sample['token'] for sample in samples]
+    #!! dxg add split dataset
+```
+
+
+
+
+---
+
+
 # <img src="docs/nutonomy-logo-big-r.svg" width="182px" height="46px" style="vertical-align: middle" /> nuScenes™ devkit
 Welcome to the nuTonomy® downloadable driverless vehicle software page. Click on the green box above labeled "Code" to download a copy of the software described below.
 
