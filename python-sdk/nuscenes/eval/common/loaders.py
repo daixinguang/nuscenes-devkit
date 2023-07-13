@@ -25,18 +25,18 @@ def load_prediction(result_path: str, max_boxes_per_sample: int, box_cls, verbos
     :param result_path: Path to the .json result file provided by the user.
     :param max_boxes_per_sample: Maximim number of boxes allowed per sample.
     :param box_cls: Type of box to load, e.g. DetectionBox or TrackingBox.
-    :param verbose: Whether to print messages to stdout.
+    :param verbose: Whether to print messages to stdout. 
     :return: The deserialized results and meta data.
     """
 
-    # Load from file and check that the format is correct.
+    # Load from file and check that the format is correct. 
     with open(result_path) as f:
-        data = json.load(f)
-    assert 'results' in data, 'Error: No field `results` in result file. Please note that the result format changed.' \
+        data = json.load(f) 
+    assert 'results' in data, 'Error: No field `results` in result file. Please note that the result format changed.' \ 
                               'See https://www.nuscenes.org/object-detection for more information.'
 
     # Deserialize results and get meta data.
-    all_results = EvalBoxes.deserialize(data['results'], box_cls)
+    all_results = EvalBoxes.deserialize(data['results'], box_cls) 
     meta = data['meta']
     if verbose:
         print("Loaded results from {}. Found detections for {} samples."
@@ -45,7 +45,7 @@ def load_prediction(result_path: str, max_boxes_per_sample: int, box_cls, verbos
     # Check that each sample has no more than x predicted boxes.
     for sample_token in all_results.sample_tokens:
         assert len(all_results.boxes[sample_token]) <= max_boxes_per_sample, \
-            "Error: Only <= %d boxes per sample allowed!" % max_boxes_per_sample
+            "Error: Only <= %d boxes per sample allowed!" % max_boxes_per_sample 
 
     return all_results, meta
 
@@ -56,8 +56,8 @@ def load_gt(nusc: NuScenes, eval_split: str, box_cls, verbose: bool = False) -> 
     :param nusc: A NuScenes instance.
     :param eval_split: The evaluation split for which we load GT boxes.
     :param box_cls: Type of box to load, e.g. DetectionBox or TrackingBox.
-    :param verbose: Whether to print messages to stdout.
-    :return: The GT boxes.
+    :param verbose: Whether to print messages to stdout. 
+    :return: The GT boxes. 
     """
     # Init.
     if box_cls == DetectionBox:
@@ -82,7 +82,7 @@ def load_gt(nusc: NuScenes, eval_split: str, box_cls, verbose: bool = False) -> 
             'Error: Requested split {} which is not compatible with NuScenes version {}'.format(eval_split, version)
     elif eval_split == 'test':
         assert version.endswith('test'), \
-            'Error: Requested split {} which is not compatible with NuScenes version {}'.format(eval_split, version)
+            'Error: Requested split {} which is not compatible with NuScenes version {}'.format(eval_split, version) 
     else:
         raise ValueError('Error: Requested split {} which this function cannot map to the correct NuScenes version.'
                          .format(eval_split))
@@ -92,16 +92,31 @@ def load_gt(nusc: NuScenes, eval_split: str, box_cls, verbose: bool = False) -> 
         assert len(nusc.sample_annotation) > 0, \
             'Error: You are trying to evaluate on the test set but you do not have the annotations!'
 
+    #! dxg add split dataset
+    ''' 
     sample_tokens = []
     for sample_token in sample_tokens_all:
         scene_token = nusc.get('sample', sample_token)['scene_token']
         scene_record = nusc.get('scene', scene_token)
         if scene_record['name'] in splits[eval_split]:
             sample_tokens.append(sample_token)
+    '''
+    load_interval = 1000
+    samples = []
+    for sample_token in sample_tokens_all:
+        sample = nusc.get('sample', sample_token)
+        scene_token = sample['scene_token']
+        scene_record = nusc.get('scene', scene_token)
+        if scene_record['name'] in splits[eval_split]:
+            samples.append(sample)
+    samples = list(sorted(samples, key=lambda e: e['timestamp']))
+    samples = samples[::load_interval]
+    sample_tokens = [sample['token'] for sample in samples]
+    #!! dxg add split dataset
 
-    all_annotations = EvalBoxes()
+    all_annotations = EvalBoxes() 
 
-    # Load annotations and filter predictions and annotations.
+    # Load annotations and filter predictions and annotations. 
     tracking_id_set = set()
     for sample_token in tqdm.tqdm(sample_tokens, leave=verbose):
 
@@ -146,7 +161,7 @@ def load_gt(nusc: NuScenes, eval_split: str, box_cls, verbose: bool = False) -> 
                 tracking_id = sample_annotation['instance_token']
                 tracking_id_set.add(tracking_id)
 
-                # Get label name in detection task and filter unused labels.
+                # Get label name in detection task and filter unused labels. 
                 # Import locally to avoid errors when motmetrics package is not installed.
                 from nuscenes.eval.tracking.utils import category_to_tracking_name
                 tracking_name = category_to_tracking_name(sample_annotation['category_name'])
