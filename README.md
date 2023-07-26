@@ -42,10 +42,38 @@ load_interval 就是超参数，修改参数和mmdet3d一致即可。
     #!! dxg add split dataset
 ```
 
+或者去改配置文件
+```
+data = dict(
+    samples_per_gpu=1,
+    workers_per_gpu=1,
+    ...
+    val=dict(
+        type=dataset_type,
+        data_root=data_root,
+        num_views=num_views,
+        ann_file=data_root + '/nuscenes_infos_val.pkl',
+        load_interval=1, ################################ 
+        pipeline=test_pipeline,
+        classes=class_names,
+        modality=input_modality,
+        test_mode=True,
+        box_type_3d='LiDAR'),
+```
 
+`/home/zhanggl/sda/dxg/bev/focalsconv-mm/Transfusion_SAM/mmdet3d/datasets/nuscenes_dataset.py:118`
+```
+@DATASETS.register_module()
+class NuScenesDataset(Custom3DDataset):
+    ...
+    def __init__():
+        # self.load_interval = load_interval
+        self.load_interval = 1
+```
 
 
 ---
+
 
 
 # <img src="docs/nutonomy-logo-big-r.svg" width="182px" height="46px" style="vertical-align: middle" /> nuScenes™ devkit
