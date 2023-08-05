@@ -2,7 +2,7 @@
 
 ### add param load_interval for debug
 
-nuScenes评估全量数据集在3090上需要1h，如果需要快速出结果，可以设置1/X 数据集来比较变化。
+nuScenes评估全量数据集在3090上需要1h，如果需要快速出结果，可以设置1/X 数据集得到结果。
 
 mmdet3d提供了 load_interval 参数 方便使用 1/x 数据集训练。
 
