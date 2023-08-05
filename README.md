@@ -15,7 +15,7 @@ cd setup
 pip install -v -e .
 ```
 
-添加内容：`/home/zhanggl/sda/dxg/bev/3D_Corruptions_AD/nuscenes-devkit/python-sdk/nuscenes/eval/common/loaders.py:95`
+添加内容：`./nuscenes-devkit/python-sdk/nuscenes/eval/common/loaders.py:95`
 
 load_interval 就是超参数，修改参数和mmdet3d一致即可。
 ```python
